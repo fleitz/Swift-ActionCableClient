@@ -101,7 +101,7 @@ internal struct Message {
 
 internal struct Action {
     var name : String
-    var params: Dictionary<String, Any>?
+    var params: ActionPayload?
 }
 
 func exp2(_ x: [Double]) -> [Double] {

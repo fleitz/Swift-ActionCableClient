@@ -32,7 +32,7 @@ open class Channel: Hashable, Equatable {
     open var name : String
     
     /// Identifier
-    open var identifier: Dictionary<String, Any>?
+    open var identifier: ChannelIdentifier?
     
     /// Auto-Subscribe to channel on initialization and re-connect?
     open var autoSubscribe : Bool
@@ -123,9 +123,9 @@ open class Channel: Hashable, Equatable {
     ///     - action: The name of the action (e.g. speak)
     /// - Returns: `true` if the action was sent.
   
-    open subscript(name: String) -> (Dictionary<String, Any>) -> Swift.Error? {
+    open subscript(name: String) -> (ActionPayload) -> Swift.Error? {
         
-        func executeParams(_ params : Dictionary<String, Any>?) -> Swift.Error?  {
+        func executeParams(_ params : ActionPayload?) -> Swift.Error?  {
             return action(name, with: params)
         }
         
@@ -149,7 +149,7 @@ open class Channel: Hashable, Equatable {
     /// - Returns: A `TransmitError` if there were any issues sending the
     ///             message.
     @discardableResult
-    open func action(_ name: String, with params: [String: Any]? = nil) -> Swift.Error? {
+    open func action(_ name: String, with params: ActionPayload? = nil) -> Swift.Error? {
         do {
           try (client.action(name, on: self, with: params))
         // Consume the error and return false if the error is a not subscribed
@@ -193,7 +193,13 @@ open class Channel: Hashable, Equatable {
     internal var onReceiveActionHooks: Dictionary<String, OnReceiveClosure> = Dictionary()
     internal unowned var client: ActionCableClient
     internal var actionBuffer: Array<Action> = Array()
-    open let hashValue: Int = Int(arc4random_uniform(UInt32(Int32.max)))
+    public func hash(into hasher: inout Hasher) {
+          hasher.combine(name)
+        identifier?.forEach({ (key: String, value: AnyHashable) in
+            key.hash(into : &hasher)
+            value.hash(into: &hasher)
+        })
+      }
 }
 
 public func ==(lhs: Channel, rhs: Channel) -> Bool {
@@ -259,12 +265,8 @@ extension Channel: CustomDebugStringConvertible {
     }
 }
 
-extension Channel: CustomPlaygroundQuickLookable {
-    /// A custom playground quick look for this instance.
-    ///
-    /// If this type has value semantics, the `PlaygroundQuickLook` instance
-    /// should be unaffected by subsequent mutations.
-    public var customPlaygroundQuickLook: PlaygroundQuickLook {
-              return PlaygroundQuickLook.text(self.name)
+extension Channel: CustomPlaygroundDisplayConvertible {
+    public var playgroundDescription: Any {
+        return self.name
     }
 }

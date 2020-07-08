@@ -27,5 +27,6 @@ struct TestConfiguration {
     static var EchoChannelAction = "echo"
     static var RejectChannel = "RejectChannel"
     static var GoodURL: URL = URL(string:"ws://actioncable-echo.herokuapp.com/cable")!
-    static var BadURL: URL = URL(string: "ws://blhasf/cable")!
+    // Bug in starscream causes DNS
+    static var BadURL: URL = URL(string: "ws://localhost:1/cable")!
 }
